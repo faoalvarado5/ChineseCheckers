@@ -16,12 +16,14 @@
              [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
-                         ;(sleep 1)
                          (iniciar 1))]))
 
 ; Make a static text message in the frame
 (define msg (new message% [parent frame]
                           [label "Hi!"]
+                          [vert-margin 10]
+                          [stretchable-width #f]	 
+                          [stretchable-height #f]	
                           [auto-resize #t]))
 
 ; ---------------------------------------------------------------------
@@ -481,7 +483,7 @@
 ; Make a button in the frame
 (define b12-1 (new button% [parent row12]
              [label "O"]
-             [enabled #t]
+             [enabled #f]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          ;(check-availables b12-1))]))
@@ -565,18 +567,18 @@
                (list                  o01)
                ))
 
-(define (hay-ganador tableroo)
+(define (hay-ganador)
   (cond
-    [(equal? (ficha-tipo (first(first tableroo))) "X") #f]
-    [(equal? (ficha-tipo (first(first tableroo))) "E") #f]
-    [(equal? (ficha-tipo (first(last tableroo))) "O") #f]
-    [(equal? (ficha-tipo (first(last tableroo))) "E") #f]
+    [(equal? (ficha-tipo (first(first tablero))) "X") #f]
+    [(equal? (ficha-tipo (first(first tablero))) "E") #f]
+    [(equal? (ficha-tipo (first(last tablero))) "O") #f]
+    [(equal? (ficha-tipo (first(last tablero))) "E") #f]
 
-    [(equal? (verificar-fila (fifth tableroo)) #f) #f]
-    [(equal? (verificar-fila (sixth tableroo)) #f) #f]
-    [(equal? (verificar-fila (seventh tableroo)) #f) #f]
-    [(equal? (verificar-fila (eighth tableroo)) #f) #f]
-    [(equal? (verificar-fila (ninth tableroo)) #f) #f]
+    [(equal? (verificar-fila (fifth tablero)) #f) #f]
+    [(equal? (verificar-fila (sixth tablero)) #f) #f]
+    [(equal? (verificar-fila (seventh tablero)) #f) #f]
+    [(equal? (verificar-fila (eighth tablero)) #f) #f]
+    [(equal? (verificar-fila (ninth tablero)) #f) #f]
     
     [else #t]))
 
@@ -587,27 +589,34 @@
     [else #f]))
 
 (define (iniciar turno)
- ; (cond
- ;   [])
-  (if (= turno 1) (juega-O) (send msg set-label "Turno de X")))
+  (cond
+    [(boolean=? (hay-ganador) #t) (write 'GANOOOOO)]
+    [(= turno 1) (juega-O)]
+    [else (juega-X)] ))
 
 (define (juega-O)
-  (send msg set-label "Turno de O")
-  (apagar-btns "O" tablero))
+  (send msg set-label "O")
+  (cambiar-btns "X" tablero #f))
+  ;(iniciar 0))
 
-(define (apagar-btns tipo tableroo)
+(define (juega-X)
+  (send msg set-label "X")
+  (cambiar-btns "O" tablero #f)
+  (iniciar 1))
+
+(define (cambiar-btns tipo tableroo condicion)
   (cond
     [(empty? tableroo) 0]
-    [(equal? tipo "X") (apagar-btns-aux tableroo "X" (first tableroo))]
-    [else (apagar-btns-aux tableroo "O" (first tableroo))]))
+    [(equal? tipo "X") (cambiar-btns-aux tableroo "X" (first tableroo) condicion)]
+    [else (cambiar-btns-aux tableroo "O" (first tableroo) condicion)]))
 
-(define (apagar-btns-aux tableroo tipo fila)
+(define (cambiar-btns-aux tableroo tipo fila condicion)
   (cond
-    [(empty? fila) (apagar-btns tipo (rest tableroo))]
-    [(equal? (ficha-tipo (first fila)) tipo) (begin (apagar-btn (ficha-btn (first fila)))(apagar-btns-aux tableroo tipo (rest fila)))]
-    [else (apagar-btns-aux tableroo tipo (rest fila))]))
+    [(empty? fila) (cambiar-btns tipo (rest tableroo) condicion)]
+    [(equal? (ficha-tipo (first fila)) tipo) (begin (cambiar-btn (ficha-btn (first fila)) condicion) (cambiar-btns-aux tableroo tipo (rest fila) condicion))]
+    [else (cambiar-btns-aux tableroo tipo (rest fila) condicion)]))
 
-(define (apagar-btn btn)
-  (send btn enable #f))
+(define (cambiar-btn btn condicion)
+  (send btn enable condicion))
 
 (send frame show #t)
