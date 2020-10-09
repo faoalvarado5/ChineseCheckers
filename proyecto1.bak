@@ -10,18 +10,9 @@
                    [x 1000]	 
                    [y 30]))
 
-; Make a button in the frame
-(define bnn (new button% [parent frame]
-             [label "Click me"]
-             [enabled #t]
-             ; Callback procedure for a button click:
-             [callback (lambda (button event)
-                         ;(sleep 1)
-                         (iniciar 1))]))
-
 ; Make a static text message in the frame
 (define msg (new message% [parent frame]
-                          [label "Hi!"]
+                          [label "No events so far..."]
                           [auto-resize #t]))
 
 ; ---------------------------------------------------------------------
@@ -98,7 +89,7 @@
 ; Make a button in the frame
 (define b3-1 (new button% [parent row3]
              [label "X"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -106,7 +97,7 @@
 ; Make a button in the frame
 (define b3-2 (new button% [parent row3]
              [label "X"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -114,7 +105,7 @@
 ; Make a button in the frame
 (define b3-3 (new button% [parent row3]
              [label "X"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -122,7 +113,7 @@
 ; Make a button in the frame
 (define b3-4 (new button% [parent row3]
              [label "X"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -393,7 +384,7 @@
 ; Make a button in the frame
 (define b9-1 (new button% [parent row9]
              [label "O"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -401,7 +392,7 @@
 ; Make a button in the frame
 (define b9-2 (new button% [parent row9]
              [label "O"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -409,7 +400,7 @@
 ; Make a button in the frame
 (define b9-3 (new button% [parent row9]
              [label "O"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -417,7 +408,7 @@
 ; Make a button in the frame
 (define b9-4 (new button% [parent row9]
              [label "O"]
-             [enabled #f]
+             [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
                          (send msg set-label "Button click"))]))
@@ -484,130 +475,34 @@
              [enabled #t]
              ; Callback procedure for a button click:
              [callback (lambda (button event)
-                         ;(check-availables b12-1))]))
-                         (send msg set-label "Button click"))]))
+                         (check-availables b12-1))]))
 
 ;-------------------------------------------------------------------------------------
 ;-------------------------------------------------------------------------------------
 ;-------------------------------------------------------------------------------------
-
-(define-struct ficha(tipo btn) #:mutable #:transparent)
-
-(define x01(ficha "X" b0-1))
-(define x02(ficha "X" b1-1))
-(define x03(ficha "X" b1-2))
-(define x04(ficha "X" b2-1))
-(define x05(ficha "X" b2-2)) ; Fichas del jugador X
-(define x06(ficha "X" b2-3))
-(define x07(ficha "X" b3-1))
-(define x08(ficha "X" b3-2))
-(define x09(ficha "X" b3-3))
-(define x10(ficha "X" b3-4))
-
-(define o01(ficha "O" b12-1))
-(define o02(ficha "O" b11-1))
-(define o03(ficha "O" b11-2))
-(define o04(ficha "O" b10-1))
-(define o05(ficha "O" b10-2)) ; Fichas del jugador O
-(define o06(ficha "O" b10-3))
-(define o07(ficha "O" b9-1))
-(define o08(ficha "O" b9-2))
-(define o09(ficha "O" b9-3))
-(define o10(ficha "O" b9-4))
-
-(define e01(ficha "E" b4-1))
-(define e02(ficha "E" b4-2))
-(define e03(ficha "E" b4-3))
-(define e04(ficha "E" b4-4))
-(define e05(ficha "E" b4-5))
-(define e06(ficha "E" b5-1))
-(define e07(ficha "E" b5-2))
-(define e08(ficha "E" b5-3))
-(define e09(ficha "E" b5-4))
-(define e10(ficha "E" b5-5))
-(define e11(ficha "E" b5-6))
-(define e12(ficha "E" b6-1))
-(define e13(ficha "E" b6-2))
-(define e14(ficha "E" b6-3)) ; Espacios disponibles
-(define e15(ficha "E" b6-4))
-(define e16(ficha "E" b6-5))
-(define e17(ficha "E" b6-6))
-(define e18(ficha "E" b6-7))
-(define e19(ficha "E" b7-1))
-(define e20(ficha "E" b7-2))
-(define e21(ficha "E" b7-3))
-(define e22(ficha "E" b7-4))
-(define e23(ficha "E" b7-5))
-(define e24(ficha "E" b7-6))
-(define e25(ficha "E" b8-1))
-(define e26(ficha "E" b8-2))
-(define e27(ficha "E" b8-3))
-(define e28(ficha "E" b8-4))
-(define e29(ficha "E" b8-5))
-
 
 ; X-O --> Fichas de jugadores.
-; E --> Espacio.
+; D-N --> Espacio disponible / espacio no disponible.
+; K --> Espacio inhabilitado.
+(define tablero (list
+                 (list "K" "K" "K" "K" "K" "K" b0-1 "K" "K" "K" "K" "K" "K") ; 0
+                 (list "K" "K" "K" "K" "K" b1-1 "K" b1-2 "K" "K" "K" "K" "K") ; 1
+                 (list "K" "K" "K" "K" b2-1 "K" b2-2 "K" b2-3 "K" "K" "K" "K") ; 2
+                 (list "K" "K" "K" b3-1 "K" b3-2 "K" b3-3 "K" b3-4 "K" "K" "K") ; 3
+                 (list "K" "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K" "K") ; 4
+                 (list "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K") ; 5
+                 (list "N" "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K" "N") ; 6
+                 (list "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K") ; 7
+                 (list "K" "K" "N" "K" "N" "K" "N" "K" "N" "K" "N" "K" "K") ; 8
+                 (list "K" "K" "K" b9-1 "K" b9-2 "K" b9-3 "K" b9-4 "K" "K" "K") ; 9
+                 (list "K" "K" "K" "K" b10-1 "K" b10-2 "K" b10-3 "K" "K" "K" "K") ; 10
+                 (list "K" "K" "K" "K" "K" b11-1 "K" b11-2 "K" "K" "K" "K" "K") ; 11
+                 (list "K" "K" "K" "K" "K" "K" b12-1 "K" "K" "K" "K" "K" "K") ; 12
+                 ))
 
-(define tablero(list
-               (list                  x01)
-               (list                x02 x03)
-               (list              x04 x05 x06)
-               (list            x07 x08 x09 x10)
-               (list          e01 e02 e03 e04 e05)
-               (list        e06 e07 e08 e09 e10 e11)
-               (list      e12 e13 e14 e15 e16 e17 e18)
-               (list        e19 e20 e21 e22 e23 e24)
-               (list          e25 e26 e27 e28 e29)
-               (list            o07 o08 o09 o10)
-               (list              o04 o05 o06)
-               (list                o02 o03)
-               (list                  o01)
-               ))
+;(define (mss message)(send b0-1 set-label message))
 
-(define (hay-ganador tableroo)
-  (cond
-    [(equal? (ficha-tipo (first(first tableroo))) "X") #f]
-    [(equal? (ficha-tipo (first(first tableroo))) "E") #f]
-    [(equal? (ficha-tipo (first(last tableroo))) "O") #f]
-    [(equal? (ficha-tipo (first(last tableroo))) "E") #f]
-
-    [(equal? (verificar-fila (fifth tableroo)) #f) #f]
-    [(equal? (verificar-fila (sixth tableroo)) #f) #f]
-    [(equal? (verificar-fila (seventh tableroo)) #f) #f]
-    [(equal? (verificar-fila (eighth tableroo)) #f) #f]
-    [(equal? (verificar-fila (ninth tableroo)) #f) #f]
-    
-    [else #t]))
-
-(define (verificar-fila fila)
-  (cond
-    [(empty? fila) #t]
-    [(equal? (ficha-tipo (first fila)) "E") (verificar-fila (rest fila))]
-    [else #f]))
-
-(define (iniciar turno)
- ; (cond
- ;   [])
-  (if (= turno 1) (juega-O) (send msg set-label "Turno de X")))
-
-(define (juega-O)
-  (send msg set-label "Turno de O")
-  (apagar-btns "O" tablero))
-
-(define (apagar-btns tipo tableroo)
-  (cond
-    [(empty? tableroo) 0]
-    [(equal? tipo "X") (apagar-btns-aux tableroo "X" (first tableroo))]
-    [else (apagar-btns-aux tableroo "O" (first tableroo))]))
-
-(define (apagar-btns-aux tableroo tipo fila)
-  (cond
-    [(empty? fila) (apagar-btns tipo (rest tableroo))]
-    [(equal? (ficha-tipo (first fila)) tipo) (begin (apagar-btn (ficha-btn (first fila)))(apagar-btns-aux tableroo tipo (rest fila)))]
-    [else (apagar-btns-aux tableroo tipo (rest fila))]))
-
-(define (apagar-btn btn)
-  (send btn enable #f))
+(define (check-availables btn)
+         (send btn set-label "este"))
 
 (send frame show #t)
