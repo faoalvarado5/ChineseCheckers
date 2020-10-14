@@ -766,8 +766,7 @@
   (set! accionActual 0)
 
   (if (equal? turnoActual "O") (set! turnoActual "X") (set! turnoActual "O"))
-  (if (equal? turnoActual "X") (juega-X) (juega-O))
-  )
+  (jugar))
 
 (define (realizar-jugada x1 y1)
   (set! actualX x1)
@@ -784,13 +783,13 @@
     [else (verificar-disponibles-aux x1 y1 x2 y2 tableroo (first tableroo) flag)]))
 
 (define (verificar-disponibles-aux x1 y1 x2 y2 tableroo fila flag)
-  ;(write x1)(writeln x2)
   (cond
     [(empty? fila) (verificar-disponibles x1 y1 (+ x2 1) 0 flag (rest tableroo))] 
     [(not(verificar-espacio-vacio (first fila))) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)]
 
 
-    ;[(> x1 7)
+    [(> x1 7)
+    (cond
     ;abajo de la mitad
     [(equal? (- x1 1) x2)
      (cond
@@ -798,17 +797,77 @@
       [(equal? y1 (- y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
       [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
 
-    ;[(< x1 7)
+    [(equal? (+ x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    ;error
+    [(equal? (- x1 2) x2)
+     (cond
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    ;error
+    [(equal? (+ x1 2) x2)
+     (cond
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    
+    [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+
+    [(< x1 7)
+     (cond
     ;arriba de la mitad
     [(equal? (+ x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (write 'aqui3) (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? (+ y1 1) y2) (begin (write 'aqui4) (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+
+    [(equal? (- x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? y1 (+ y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    ;error
+    [(equal? (+ x1 2) x2)
+     (cond
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    ;error
+    [(equal? (- x1 2) x2)
+     (cond
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
       [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
     
+    [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    
 
+    [(= x1 7)
+     (cond
+       [(equal? (+ x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
 
-
+    [(equal? (- x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? y1 (+ y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+       [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    ;error
+    [(equal? (- x1 2) x2)
+     (cond
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    ;error
+    [(equal? (+ x1 2) x2)
+     (cond
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)])]
+    
     [else (verificar-disponibles-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) flag)]))
 
 ;------------------
@@ -828,6 +887,8 @@
     [(equal? (verificar-fila (seventh tablero)) #f) #f]
     [(equal? (verificar-fila (eighth tablero)) #f) #f]
     [(equal? (verificar-fila (ninth tablero)) #f) #f]
+    [(equal? (verificar-fila (tenth tablero)) #f) #f]
+    [(equal? (verificar-fila (tenth (rest tablero))) #f) #f]
     
     [else #t]))
 
@@ -839,7 +900,7 @@
 
 (define (jugar)
   (cond
-    [(boolean=? (hay-ganador) #t) (begin (send msg set-label "Hay ganador") (cambiar-btns "X" tablero #f) (cambiar-btns "X" tablero #f) (cambiar-btns "X" tablero #f))]
+    [(boolean=? (hay-ganador) #t) (begin (send msg set-label "Hay ganador") (cambiar-btns "X" tablero #f) (cambiar-btns "O" tablero #f) (cambiar-btns "E" tablero #f))]
     [(equal? turnoActual "O") (juega-O)]
     [else (juega-X)]))
 
