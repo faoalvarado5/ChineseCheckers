@@ -693,11 +693,15 @@
 (define e43(ficha "E" b10-4))
 (define e44(ficha "E" b10-5))
 
+(define IA "X")
 (define turnoActual "O")
 (define accionActual 0)
 (define actualX null)
 (define actualY null)
 (define tableroTMP null)
+
+(define-struct movimiento(ficha x1 y1 x2 y2 peso) #:mutable #:transparent)
+(define listaMovimientos(list))
 
 ; X-O --> Fichas de jugadores.
 ; E --> Espacio.
@@ -720,7 +724,111 @@
                (list                  f11)
                ))
 
-;-----------------------------------
+
+;-------------------------------------------------------------------------------
+; De aqui hacia abajo es el funcionamiento de la IA.
+;-------------------------------------------------------------------------------
+
+(define (posibles-jugadas-ia tableroo)
+  (cond
+    [(empty? tableroo) 0]
+    [else (posibles-jugadas-ia-aux tableroo (first tableroo))]))
+
+(define (posibles-jugadas-ia-aux tableroo fila)
+  (cond
+    [(empty? fila) (posibles-jugadas-ia tipo (rest tableroo))]
+    [(equal? (ficha-tipo (first fila)) IA) (begin
+                                             (verificar-disponibles-ia x1 y1 tablero (list));dadadad
+                                             (cambiar-btns-aux tableroo (rest fila)))]
+    [else (posibles-jugadas-ia-aux tableroo (rest fila))]))
+
+
+
+(define (verificar-disponibles-ia x1 y1 x2 y2   tableroo)
+  (cond
+    [(empty? tableroo) (if (boolean=?   #f) (send msg set-label "No hay jugada") (realizar-jugada x1 y1))]
+    [else (verificar-disponibles-ia-aux x1 y1 x2 y2 tableroo (first tableroo)  )]))
+
+(define (verificar-disponibles-ia-aux x1 y1 x2 y2 tableroo fila  )
+  (cond
+    [(empty? fila) (verificar-disponibles-ia x1 y1 (+ x2 1) 0   (rest tableroo))]
+    [(not(verificar-espacio-vacio (first fila))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )]
+
+    [(> x1 7)
+    (cond
+    ;abajo de la mitad
+    [(equal? (- x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? y1 (- y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+
+    [(equal? (+ x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+
+    [(equal? x1 x2)
+     (cond
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+    
+    [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+
+    [(< x1 7)
+     (cond
+    ;arriba de la mitad
+    [(equal? (+ x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+
+    [(equal? (- x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? y1 (+ y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+    
+    [(equal? x1 x2)
+     (cond
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+    
+    [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+    
+    ; centro del tablero
+    [(= x1 7)
+     (cond
+    [(equal? (+ x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+
+    [(equal? (- x1 1) x2)
+     (cond
+      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
+      [(equal? y1 (+ y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+     
+    [(equal? x1 x2)
+     (cond
+      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+    
+    [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
+    
+    [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )]))
+
+
+;-------------------------------------------------------------------------------
+; De aqui hacia habajo es el funcionamiento del juego normal normal, sin IA.
+;-------------------------------------------------------------------------------
 
 (define (ubicar-elemento tableroo x1 y1 x2 y2)
   (cond
