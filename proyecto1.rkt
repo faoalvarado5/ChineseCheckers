@@ -712,7 +712,23 @@
 ; 4 : cuando no avanza y se mueve hacia el mero centro
 ; 3 : cuando no avanza y se muere hacia el centro
 ; 2 : cuando no avanza y se aleja del centro
-(define listaEval(list 1 2 3 4 4 3 2 1))
+(define listaEval(list
+                  (list        4)
+                  (list       4 4)
+                  (list      3 4 3)
+                  (list     3 4 4 3)
+                  (list    2 3 4 3 2)
+                  (list   2 3 4 4 3 2)
+                  (list  1 2 3 4 3 2 1)
+                  (list 1 2 3 4 4 3 2 1)
+                  (list  1 2 3 4 3 2 1)
+                  (list   2 3 4 4 3 2)
+                  (list    2 3 4 3 2)
+                  (list     3 4 4 3)
+                  (list      3 4 3)
+                  (list       4 4)
+                  (list        4)
+                  ))
 
 ; X-O --> Fichas de jugadores.
 ; E --> Espacio.
@@ -748,60 +764,60 @@
                  ; sector izquierdo
                  [(> (/ (length(list-ref tablero x2)) 2)  y2) (cond
                               ;se aleja del centro
-                              [(> y1 y2) (* 2 (list-ref listaEval y2))]
+                              [(> y1 y2) (* 2 (list-ref (list-ref listaEval x2) y2))]
                               ;se acerca del centro
-                              [(< y1 y2) (* 3 (list-ref listaEval y2))]
+                              [(< y1 y2) (* 3 (list-ref (list-ref listaEval x2) y2))]
                               ; se acerca
-                              [else (* 3 (list-ref listaEval y2))])]
+                              [else (* 3 (list-ref (list-ref listaEval x2) y2))])]
                  
                  ; sector derecho
                  [(< (/ (length(list-ref tablero x2)) 2)  y2) (cond
                               ;se acerca del centro
-                              [(> y1 y2) (* 3 (list-ref listaEval y2))]
+                              [(> y1 y2) (* 3 (list-ref (list-ref listaEval x2) y2))]
                               ;se aleja del centro
-                              [(< y1 y2) (* 2 (list-ref listaEval y2))]
+                              [(< y1 y2) (* 2 (list-ref (list-ref listaEval x2) y2))]
                               ;se aleja
-                              [else (* 2 (list-ref listaEval y2))])]
+                              [else (* 2 (list-ref (list-ref listaEval x2) y2))])]
                  ; cuando esta en el mero centro
-                 [else (* 4 (list-ref listaEval y2))])]
+                 [else (* 4 (list-ref (list-ref listaEval x2) y2))])]
 
     ;caso donde avanza
     [(< x1 x2) (cond
                  ; sector izquierdo
                  [(> (/ (length(list-ref tablero x2)) 2)  y2) (cond
                               ;se aleja del centro
-                              [(> y1 y2) (* 8 (list-ref listaEval y2))]
+                              [(> y1 y2) (* 8 (list-ref (list-ref listaEval x2) y2))]
                               ;se acerca del centro
-                              [(< y1 y2) (* 9 (list-ref listaEval y2))]
-                              [else (* 8 (list-ref listaEval y2))])]
+                              [(< y1 y2) (* 9 (list-ref (list-ref listaEval x2) y2))]
+                              [else (* 8 (list-ref (list-ref listaEval x2) y2))])]
                  
                  ; sector derecho
                  [(< (/ (length(list-ref tablero x2)) 2)  y2) (cond
                               ;se acerca del centro
-                              [(> y1 y2) (* 9 (list-ref listaEval y2))]
+                              [(> y1 y2) (* 9 (list-ref (list-ref listaEval x2) y2))]
                               ;se aleja del centro
-                              [(< y1 y2) (* 8 (list-ref listaEval y2))]
-                              [else (* 9 (list-ref listaEval y2))])]
+                              [(< y1 y2) (* 8 (list-ref (list-ref listaEval x2) y2))]
+                              [else (* 9 (list-ref (list-ref listaEval x2) y2))])]
                  ; cuando esta en el mero centro
-                 [else (* 10 (list-ref listaEval y2))])]
+                 [else (* 10 (list-ref (list-ref listaEval x2) y2))])]
     
     ;cuando se mueve en la misma fila
     [else (cond
                  ; sector izquierdo
                  [(> (/ (length(list-ref tablero x2)) 2)  y2) (cond
                               ;se aleja del centro
-                              [(> y1 y2) (* 5 (list-ref listaEval y2))]
+                              [(> y1 y2) (* 5 (list-ref (list-ref listaEval x2) y2))]
                               ;se acerca del centro
-                              [(< y1 y2) (* 6 (list-ref listaEval y2))])]
+                              [(< y1 y2) (* 6 (list-ref (list-ref listaEval x2) y2))])]
                  
                  ; sector derecho
                  [(< (/ (length(list-ref tablero x2)) 2)  y2) (cond
                               ;se acerca del centro
-                              [(> y1 y2) (* 6 (list-ref listaEval y2))]
+                              [(> y1 y2) (* 6 (list-ref (list-ref listaEval x2) y2))]
                               ;se aleja del centro
-                              [(< y1 y2) (* 5 (list-ref listaEval y2))])]
+                              [(< y1 y2) (* 5 (list-ref (list-ref listaEval x2) y2))])]
                  ; cuando esta en el mero centro
-                 [else (* 7 (list-ref listaEval y2))])]))
+                 [else (* 7 (list-ref (list-ref (list-ref listaEval x2) x2) y2))])]))
 
 
 
