@@ -824,7 +824,7 @@
 (define (posibles-jugadas-ia tableroo x1 y1)
   (cond
     [(empty? tableroo) 0]
-    [else (posibles-jugadas-ia-aux 0 0 tableroo (first tableroo))]))
+    [else (posibles-jugadas-ia-aux x1 y1 tableroo (first tableroo))]))
 
 (define (posibles-jugadas-ia-aux x1 y1 tableroo fila)
   (cond
