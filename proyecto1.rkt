@@ -703,6 +703,17 @@
 (define-struct movimiento(ficha x1 y1 x2 y2 peso) #:mutable #:transparent)
 (define listaMovimientos(list))
 
+; 10 : cuando avanza y se mueve hacia el mero centro
+; 9 : cuando avanza y se muere hacia el centro
+; 8 : cuando avanza y se aleja del centro
+; 7 : cuando se mueve en linea y se mueve hacia el mero centro
+; 6 : cuando se mueve en linea y se muere hacia el centro
+; 5 : cuando se mueve en linea y se aleja del centro
+; 4 : cuando no avanza y se mueve hacia el mero centro
+; 3 : cuando no avanza y se muere hacia el centro
+; 2 : cuando no avanza y se aleja del centro
+(define listaEval(list 1 2 3 4 4 3 2 1))
+
 ; X-O --> Fichas de jugadores.
 ; E --> Espacio.
 
@@ -729,24 +740,88 @@
 ; De aqui hacia abajo es el funcionamiento de la IA.
 ;-------------------------------------------------------------------------------
 
-(define (posibles-jugadas-ia tableroo)
+
+(define (Eval ficha x1 y1 x2 y2)
+  (cond
+    ;caso donde retrocede
+    [(> x1 x2) (cond
+                 ; sector izquierdo
+                 [(> (/ (length(list-ref tablero x2)) 2)  y2) (cond
+                              ;se aleja del centro
+                              [(> y1 y2) (* 2 (list-ref listaEval y2))]
+                              ;se acerca del centro
+                              [(< y1 y2) (* 3 (list-ref listaEval y2))]
+                              ; se acerca
+                              [else (* 3 (list-ref listaEval y2))])]
+                 
+                 ; sector derecho
+                 [(< (/ (length(list-ref tablero x2)) 2)  y2) (cond
+                              ;se acerca del centro
+                              [(> y1 y2) (* 3 (list-ref listaEval y2))]
+                              ;se aleja del centro
+                              [(< y1 y2) (* 2 (list-ref listaEval y2))]
+                              ;se aleja
+                              [else (* 2 (list-ref listaEval y2))])]
+                 ; cuando esta en el mero centro
+                 [else (* 4 (list-ref listaEval y2))])]
+
+    ;caso donde avanza
+    [(< x1 x2) (cond
+                 ; sector izquierdo
+                 [(> (/ (length(list-ref tablero x2)) 2)  y2) (cond
+                              ;se aleja del centro
+                              [(> y1 y2) (* 8 (list-ref listaEval y2))]
+                              ;se acerca del centro
+                              [(< y1 y2) (* 9 (list-ref listaEval y2))]
+                              [else (* 8 (list-ref listaEval y2))])]
+                 
+                 ; sector derecho
+                 [(< (/ (length(list-ref tablero x2)) 2)  y2) (cond
+                              ;se acerca del centro
+                              [(> y1 y2) (* 9 (list-ref listaEval y2))]
+                              ;se aleja del centro
+                              [(< y1 y2) (* 8 (list-ref listaEval y2))]
+                              [else (* 9 (list-ref listaEval y2))])]
+                 ; cuando esta en el mero centro
+                 [else (* 10 (list-ref listaEval y2))])]
+    
+    ;cuando se mueve en la misma fila
+    [else (cond
+                 ; sector izquierdo
+                 [(> (/ (length(list-ref tablero x2)) 2)  y2) (cond
+                              ;se aleja del centro
+                              [(> y1 y2) (* 5 (list-ref listaEval y2))]
+                              ;se acerca del centro
+                              [(< y1 y2) (* 6 (list-ref listaEval y2))])]
+                 
+                 ; sector derecho
+                 [(< (/ (length(list-ref tablero x2)) 2)  y2) (cond
+                              ;se acerca del centro
+                              [(> y1 y2) (* 6 (list-ref listaEval y2))]
+                              ;se aleja del centro
+                              [(< y1 y2) (* 5 (list-ref listaEval y2))])]
+                 ; cuando esta en el mero centro
+                 [else (* 7 (list-ref listaEval y2))])]))
+
+
+
+(define (posibles-jugadas-ia tableroo x1 y1)
   (cond
     [(empty? tableroo) 0]
-    [else (posibles-jugadas-ia-aux tableroo (first tableroo))]))
+    [else (posibles-jugadas-ia-aux 0 0 tableroo (first tableroo))]))
 
-(define (posibles-jugadas-ia-aux tableroo fila)
+(define (posibles-jugadas-ia-aux x1 y1 tableroo fila)
   (cond
-    [(empty? fila) (posibles-jugadas-ia tipo (rest tableroo))]
+    [(empty? fila) (posibles-jugadas-ia (rest tableroo) (+ x1 1) 0)]
     [(equal? (ficha-tipo (first fila)) IA) (begin
-                                             (verificar-disponibles-ia x1 y1 tablero (list));dadadad
-                                             (cambiar-btns-aux tableroo (rest fila)))]
-    [else (posibles-jugadas-ia-aux tableroo (rest fila))]))
+                                             (verificar-disponibles-ia x1 y1 0 0 tablero);dadadad
+                                             (posibles-jugadas-ia-aux x1 (+ y1 1) tableroo (rest fila)))]
+    [else (posibles-jugadas-ia-aux x1 (+ y1 1) tableroo (rest fila))]))
 
 
-
-(define (verificar-disponibles-ia x1 y1 x2 y2   tableroo)
+(define (verificar-disponibles-ia x1 y1 x2 y2 tableroo)
   (cond
-    [(empty? tableroo) (if (boolean=?   #f) (send msg set-label "No hay jugada") (realizar-jugada x1 y1))]
+    [(empty? tableroo) 0]
     [else (verificar-disponibles-ia-aux x1 y1 x2 y2 tableroo (first tableroo)  )]))
 
 (define (verificar-disponibles-ia-aux x1 y1 x2 y2 tableroo fila  )
@@ -759,20 +834,20 @@
     ;abajo de la mitad
     [(equal? (- x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? y1 (- y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - izquierda
+      [(equal? y1 (- y2 1)) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
 
     [(equal? (+ x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - izquierda
+      [(equal? (- y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
 
     [(equal? x1 x2)
      (cond
-      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
-      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? (+ y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
+      [(equal? (- y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
     
     [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
@@ -782,20 +857,20 @@
     ;arriba de la mitad
     [(equal? (+ x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - izquierda
+      [(equal? (+ y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
 
     [(equal? (- x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? y1 (+ y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - izquierda
+      [(equal? y1 (+ y2 1)) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
     
     [(equal? x1 x2)
      (cond
-      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
-      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? (+ y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
+      [(equal? (- y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
     
     [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
@@ -805,20 +880,20 @@
      (cond
     [(equal? (+ x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - izquierda
+      [(equal? (- y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
 
     [(equal? (- x1 1) x2)
      (cond
-      [(equal? y1 y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - izquierda
-      [(equal? y1 (+ y2 1)) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? y1 y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - izquierda
+      [(equal? y1 (+ y2 1)) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
      
     [(equal? x1 x2)
      (cond
-      [(equal? (+ y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
-      [(equal? (- y1 1) y2) (begin (cambiar-btn (ficha-btn (first fila)) #t) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila) #t))] ; arriba - derecha
+      [(equal? (+ y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
+      [(equal? (- y1 1) y2) (begin (writeln 'a)(set! listaMovimientos (append listaMovimientos (list (make-movimiento (first fila) x1 y1 x2 y2 69)))) (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)))] ; arriba - derecha
       [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
     
     [else (verificar-disponibles-ia-aux x1 y1 x2 (+ y2 1) tableroo (rest fila)  )])]
