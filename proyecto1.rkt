@@ -952,7 +952,7 @@
 
 (define (nuevo-tablero tableroo x1 y1 x2 y2 tablero2)
   (cond
-    [(empty? tableroo) (set! tableroTMP tablero2)]
+    [(empty? tableroo) tablero2]
     [else (nuevo-tablero-aux tableroo x1 y1 x2 y2 (first tableroo) tablero2 (list))]))
 
 (define (nuevo-tablero-aux tableroo x1 y1 x2 y2 fila tablero2 fila2)
@@ -972,7 +972,7 @@
   (send (ficha-btn (ubicar-elemento tablero x1 y1 0 0)) set-label turnoActual)
   (send (ficha-btn (ubicar-elemento tablero actualX actualY 0 0)) set-label "-")
 
-  (nuevo-tablero tablero x1 y1 0 0 (list))
+  (set! tableroTMP (nuevo-tablero tablero x1 y1 0 0 (list)))
   (set tablero null)
   (set! tablero tableroTMP)
   (set! tableroTMP null)
