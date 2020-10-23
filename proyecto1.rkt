@@ -763,15 +763,27 @@
   (cambiar-btns "E" tablero #f) ;apago los botones de "O"
   (cambiar-btns "X" tablero #f) ;prendo los botones de "X"
   (posibles-jugadas-ia tablero 0 0)
-  (set! actualX (movimiento-x1 (mejor-movimiento-ia listaMovimientos (first listaMovimientos))))
-  (set! actualY (movimiento-y1 (mejor-movimiento-ia listaMovimientos (first listaMovimientos))))
-  (cambiar-posiciones (movimiento-x2 (mejor-movimiento-ia listaMovimientos (first listaMovimientos))) (movimiento-y2 (mejor-movimiento-ia listaMovimientos (first listaMovimientos))))
+  (set! actualX (movimiento-x1 (minimax listaMovimientos (first listaMovimientos))))
+  (set! actualY (movimiento-y1 (minimax listaMovimientos (first listaMovimientos))))
+  (cambiar-posiciones (movimiento-x2 (minimax listaMovimientos (first listaMovimientos))) (movimiento-y2 (minimax listaMovimientos (first listaMovimientos))))
   )
 
-(define (mejor-movimiento-ia lista elem)
+(define (minimax lista raiz)
   (cond
-    [(empty? lista) elem]
-    [else (if (> (movimiento-peso elem) (movimiento-peso (first lista))) (mejor-movimiento-ia (rest lista) elem) (mejor-movimiento-ia (rest lista) (first lista)))]))
+    [(empty? lista) raiz]
+    [else (if (> (movimiento-peso raiz) (movimiento-peso (first lista))) (minimax (rest lista) raiz) (minimax (rest lista) (first lista)))]))
+
+;(define (minimax lista raiz)
+;  (cond
+;    [(< (length lista) 3) raiz]
+;    [else (minimax-aux lista raiz (first lista) 1)])) ;este first lista representa el hijo de la raiz, o sea, el nivel 2
+
+;(define (minimax-aux lista raiz nodoHijo contador)
+;  (cond
+;    [(= contador 3) (minimax (rest(rest(rest lista))) raiz)]
+;    [(< (movimiento-peso nodoHijo) (movimiento-peso raiz)) (minimax (rest(rest(rest lista))) raiz)] ; aqui se hace la validacion y se hace la poda a-b
+;    [(> (movimiento-peso nodoHijo) (movimiento-peso raiz)) (minimax (rest(rest(rest lista))) nodoHijo)]
+;    [else (if (< (movimiento-peso (first lista)) (movimiento-peso nodoHijo)) (minimax-aux lista raiz (first lista) (+ contador 1)) (minimax-aux lista raiz nodoHijo (+ contador 1)))])) ;el first lista al incio del if representa el tercer nivel.
 
 (define (Eval x1 y1 x2 y2)
   (cond
