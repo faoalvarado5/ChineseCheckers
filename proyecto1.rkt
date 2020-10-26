@@ -953,10 +953,18 @@
     [(empty? fila) (nuevo-tablero (rest tableroo) x1 y1 (+ x2 1) 0 (append tablero2 (list fila2)))]
     [(equal? x1 x2) (cond
                        [(equal? y1 y2) (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1) (rest fila) tablero2 (append fila2 (list (struct-copy ficha (ubicar-elemento tablero x1 y1 0 0) [tipo turnoActual]))))] ;se asigna la ficha
+                       [(equal? actualX x2) (cond
+                                              [(equal? actualY y2) (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1) (rest fila) tablero2 (append fila2 (list (struct-copy ficha (ubicar-elemento tablero actualX actualY 0 0) [tipo "E"]))))] ; se asigna el espacio vacío
+                                              [else (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1) (rest fila) tablero2 (append fila2 (list(first fila))))])]
                        [else (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1)(rest fila) tablero2 (append fila2 (list(first fila))))])]
+    
     [(equal? actualX x2) (cond
                        [(equal? actualY y2) (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1) (rest fila) tablero2 (append fila2 (list (struct-copy ficha (ubicar-elemento tablero actualX actualY 0 0) [tipo "E"]))))] ; se asigna el espacio vacío
+                       [(equal? x1 x2) (cond
+                                         [(equal? y1 y2) (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1) (rest fila) tablero2 (append fila2 (list (struct-copy ficha (ubicar-elemento tablero x1 y1 0 0) [tipo turnoActual]))))] ;se asigna la ficha
+                                         [else (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1)(rest fila) tablero2 (append fila2 (list(first fila))))])]
                        [else (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1) (rest fila) tablero2 (append fila2 (list(first fila))))])]
+    
     [else (nuevo-tablero-aux tableroo x1 y1 x2 (+ y2 1)(rest fila) tablero2 (append fila2 (list(first fila))))]))
 
 ;----------------------------------
@@ -969,15 +977,18 @@
   |#
   (send (ficha-btn (ubicar-elemento tablero x1 y1 0 0)) set-label turnoActual) ;cambia los labels de los botones para el GUI.
   (send (ficha-btn (ubicar-elemento tablero actualX actualY 0 0)) set-label "-")
-
+  
   (set! tableroTMP (nuevo-tablero tablero x1 y1 0 0 (list)))
   (set tablero null)
   (set! tablero tableroTMP) ;aquí hace los cambios necesarios para establecer el nuevo tablero tras la jugada
   (set! tableroTMP null)
   (set! accionActual 0)
 
-  (if (equal? turnoActual "O") (set! turnoActual "X") (set! turnoActual "O")) ; cambia de turno
-  (jugar)) ; llama a la función principal del juego para inciar un nuevo turno
+  (if (boolean=? (hay-ganador) #t)
+      (begin (send msg set-label "Hay ganador") (cambiar-btns "X" tablero #f) (cambiar-btns "O" tablero #f) (cambiar-btns "E" tablero #f))
+      (begin (if (equal? turnoActual "O") (set! turnoActual "X") (set! turnoActual "O")) (jugar))
+      )
+  )
 
 (define (realizar-jugada x1 y1)
   #|
@@ -1117,32 +1128,32 @@
   Restricciones: Ninguna.
   Descripcion: Función encargada de verificar si hay ganador o no.
   |#
-  (cond
-    [(equal? (ficha-tipo (first(first tablero))) "X") #f]
-    [(equal? (ficha-tipo (first(first tablero))) "E") #f]
-    [(equal? (ficha-tipo (first(last tablero))) "O") #f]
-    [(equal? (ficha-tipo (first(last tablero))) "E") #f]
+  (cond 
+    [(boolean=? (verificar-fila (first tablero) "O") #t)
+     (if (boolean=? (verificar-fila (first tablero) "O") #t)
+         (if (boolean=? (verificar-fila (second tablero) "O") #t)
+             (if (boolean=? (verificar-fila (third tablero) "O") #t)
+                 (if (boolean=? (verificar-fila (fourth tablero) "O") #t) #t #f) #f) #f) #f)]
 
-    [(equal? (verificar-fila (fifth tablero)) #f) #f]
-    [(equal? (verificar-fila (sixth tablero)) #f) #f]
-    [(equal? (verificar-fila (seventh tablero)) #f) #f]
-    [(equal? (verificar-fila (eighth tablero)) #f) #f]
-    [(equal? (verificar-fila (ninth tablero)) #f) #f]
-    [(equal? (verificar-fila (tenth tablero)) #f) #f]
-    [(equal? (verificar-fila (tenth (rest tablero))) #f) #f]
-    
-    [else #t]))
+    [(boolean=? (verificar-fila (list-ref tablero 14) "X") #t)
+     (if (boolean=? (verificar-fila (list-ref tablero 14) "X") #t)
+         (if (boolean=? (verificar-fila (list-ref tablero 13) "X") #t)
+             (if (boolean=? (verificar-fila (list-ref tablero 12) "X") #t)
+                 (if (boolean=? (verificar-fila (list-ref tablero 11) "X") #t) #t #f) #f) #f) #f)]
 
-(define (verificar-fila fila)
+    [else #f]))
+
+
+(define (verificar-fila fila tipo)
   #|
   Entradas: Una fila de la matríz.
   Salidas: Un booleano referente a si la fila contiene unicamente espacios vacíos o no.
   Restricciones: Fila válida.
-  Descripcion: Función encargada de verificar si la fila contiene unicamente espacios vacíos o no.
+  Descripcion: Función encargada de verificar si la fila contiene unicamente fichas de cierto tipo.
   |#
   (cond
     [(empty? fila) #t]
-    [(equal? (ficha-tipo (first fila)) "E") (verificar-fila (rest fila))]
+    [(equal? (ficha-tipo (first fila)) tipo) (verificar-fila (rest fila) tipo)]
     [else #f]))
 
 (define (jugar)
@@ -1150,7 +1161,7 @@
   Entradas: Una fila de la matríz.
   Salidas: Un booleano referente a si la fila contiene unicamente espacios vacíos o no.
   Restricciones: Fila válida.
-  Descripcion: Función encargada de verificar si la fila contiene unicamente espacios vacíos o no.
+  Descripcion: Función encargada de realizar los movimientos para el orden de los turnos.
   |#
   (cond
     [(boolean=? (hay-ganador) #t) (begin (send msg set-label "Hay ganador") (cambiar-btns "X" tablero #f) (cambiar-btns "O" tablero #f) (cambiar-btns "E" tablero #f))]
@@ -1168,7 +1179,7 @@
   (send msg set-label "O")
   (cambiar-btns "X" tablero #f) ;apago los botones de "X"
   (cambiar-btns "E" tablero #f) ;apago los botones de "O"
-  (cambiar-btns "0" tablero #t) ;prendo los botones de "O"
+  (cambiar-btns "O" tablero #t) ;prendo los botones de "O"
   )
 
 (define (juega-X)
@@ -1179,7 +1190,7 @@
   Descripcion: Función encargada de permitirle el turno al jugador X (sin IA).
   |#
   (send msg set-label "X")
-  (cambiar-btns "0" tablero #f) ;apago los botones de "O"
+  (cambiar-btns "O" tablero #f) ;apago los botones de "O"
   (cambiar-btns "E" tablero #f) ;apago los botones de "O"
   (cambiar-btns "X" tablero #t) ;prendo los botones de "X"
   )
